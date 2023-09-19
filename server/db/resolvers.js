@@ -2,6 +2,7 @@ const User = require("../models/User");
 const bcryptjs = require("bcryptjs");
 const jwt = require('jsonwebtoken');
 const { APP_SECRET } = require("../config");
+const Product = require("../models/Product");
 
 const courses = [
   {
@@ -63,6 +64,15 @@ const resolvers = {
 
       return {
         token
+      }
+    },
+    createProduct: async (_, { productDto }) => {
+      try {
+        const product = new Product(productDto);
+        await product.save();
+        return product;
+      } catch (error) {
+        console.log({ error });
       }
     }
   }

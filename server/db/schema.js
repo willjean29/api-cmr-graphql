@@ -27,14 +27,31 @@ const typeDefs = gql`
     token: String
   }
 
+  input ProductInput {
+    name: String!
+    stock: Int!
+    price: Float!
+  }
+
+  type Product {
+    id: ID 
+    name: String 
+    stock: Int
+    price: Float
+  }
+
   type Query {
     getAllCourse: [Course]
     getUser(token: String!): User
   }
 
   type Mutation {
+    # users
     createUser(userDto: UserInput): User
     signIn(signInDto: SignInInput): Token
+
+    # products
+    createProduct(productDto: ProductInput): Product
   }
 `;
 
