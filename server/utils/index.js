@@ -1,7 +1,14 @@
 const CollectionNames = {
   Users: "users",
   Products: "products",
-  Customers: "customers"
+  Customers: "customers",
+  Orders: "orders"
 }
 
-module.exports = { CollectionNames }
+const StatusOrder = {
+  Pending: "pending",
+  Completed: "completed",
+  Concelled: "cancelled",
+}
+
+module.exports = { CollectionNames, StatusOrder }

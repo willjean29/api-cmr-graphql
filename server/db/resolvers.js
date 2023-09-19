@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { APP_SECRET } = require("../config");
 const Product = require("../models/Product");
 const Customer = require("../models/Customer");
+const Order = require("../models/Order");
 const generateToken = (payload, secret, expiresIn) => {
   const token = jwt.sign(payload, secret, { expiresIn });
   return token;
@@ -164,6 +165,32 @@ const resolvers = {
       await Customer.findByIdAndDelete(id);
 
       return customer;
+    },
+    createOrder: async (_, { orderDto }, ctx) => {
+      const { customer: id, order } = orderDto;
+      let customer = await Customer.findById(id);
+      if (!customer) {
+        throw new Error("Customer not found")
+      }
+      if (customer.seller.toString() !== ctx.user.id) {
+        throw new Error("Unauthorized")
+      }
+
+      for await (const item of order) {
+        const { id } = item;
+        const product = await Product.findById(id);
+        if (item.qty > product.stock) {
+          throw new Error("The product exceeds the quantity in stock.")
+        } else {
+          product.stock = product.stock - item.qty;
+          await product.save();
+        }
+
+        const newOrder = new Order(orderDto);
+        newOrder.seller = ctx.user.id;
+        await newOrder.save();
+        return newOrder;
+      }
     }
   }
 }
