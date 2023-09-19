@@ -1,9 +1,7 @@
 const { gql } = require('apollo-server');
 
 const typeDefs = gql`
-  type Course {
-    title: String
-  }
+
   input UserInput {
     name: String!
     lastName: String!
@@ -41,8 +39,12 @@ const typeDefs = gql`
   }
 
   type Query {
-    getAllCourse: [Course]
+    # users
     getUser(token: String!): User
+    getProducts: [Product]
+
+    # products
+    getProductsById(id: ID!): Product
   }
 
   type Mutation {
@@ -52,6 +54,8 @@ const typeDefs = gql`
 
     # products
     createProduct(productDto: ProductInput): Product
+    updateProduct(id: ID!, productDto: ProductInput): Product
+    deleteProduct(id: ID!): Product
   }
 `;
 

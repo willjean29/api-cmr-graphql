@@ -3,30 +3,31 @@ const bcryptjs = require("bcryptjs");
 const jwt = require('jsonwebtoken');
 const { APP_SECRET } = require("../config");
 const Product = require("../models/Product");
-
-const courses = [
-  {
-    title: "Course 1"
-  },
-  {
-    title: "Course 2"
-  }
-]
-
 const generateToken = (payload, secret, expiresIn) => {
-  console.log({ payload });
   const token = jwt.sign(payload, secret, { expiresIn });
   return token;
 }
 
 const resolvers = {
   Query: {
-    getAllCourse: () => {
-      return courses;
-    },
     getUser: (_, { token }) => {
       const user = jwt.verify(token, APP_SECRET);
       return user;
+    },
+    getProducts: async () => {
+      try {
+        const products = await Product.find({});
+        return products;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    getProductsById: async (_, { id }) => {
+      const product = await Product.findById(id);
+      if (!product) {
+        throw new Error("Product not found");
+      }
+      return product;
     }
   },
   Mutation: {
@@ -74,6 +75,25 @@ const resolvers = {
       } catch (error) {
         console.log({ error });
       }
+    },
+    updateProduct: async (_, { id, productDto }) => {
+      let product = await Product.findById(id);
+      if (!product) {
+        throw new Error("Product not found");
+      }
+
+      product = await Product.findByIdAndUpdate({ _id: id }, productDto, { new: true });
+
+      return product;
+    },
+    deleteProduct: async (_, { id }) => {
+      let product = await Product.findById(id);
+      if (!product) {
+        throw new Error("Product not found");
+      }
+
+      await Product.findByIdAndDelete(id);
+      return product;
     }
   }
 }
