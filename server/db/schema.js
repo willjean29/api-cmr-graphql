@@ -59,10 +59,15 @@ const typeDefs = gql`
   type Query {
     # users
     getUser(token: String!): User
-    getProducts: [Product]
 
     # products
+    getProducts: [Product]
     getProductsById(id: ID!): Product
+
+    # customers
+    getCustomers: [Customer]
+    getCustomersBySeller: [Customer]
+    getCustomersById(id: ID!): Customer
   }
 
   type Mutation {
@@ -77,6 +82,8 @@ const typeDefs = gql`
 
     # customers
     createCustomer(customerDto: CustomerInput): Customer
+    updateCustomer(id: ID!, customerDto: CustomerInput): Customer
+    deleteCustomer(id: ID!): Customer
   }
 `;
 
