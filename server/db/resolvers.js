@@ -3,6 +3,7 @@ const bcryptjs = require("bcryptjs");
 const jwt = require('jsonwebtoken');
 const { APP_SECRET } = require("../config");
 const Product = require("../models/Product");
+const Customer = require("../models/Customer");
 const generateToken = (payload, secret, expiresIn) => {
   const token = jwt.sign(payload, secret, { expiresIn });
   return token;
@@ -94,6 +95,21 @@ const resolvers = {
 
       await Product.findByIdAndDelete(id);
       return product;
+    },
+    createCustomer: async (_, { customerDto }) => {
+      const { email } = customerDto;
+      const customer = await Customer.findOne({ email });
+      if (customer) {
+        throw new Error("Customer already exists");
+      }
+      const newCustomer = new Customer(customerDto);
+      newCustomer.seller = "6509a2bf067e8a7f9ad2aa4f";
+      try {
+        await newCustomer.save();
+        return newCustomer;
+      } catch (error) {
+        console.log({ error });
+      }
     }
   }
 }
