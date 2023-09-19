@@ -1,5 +1,7 @@
 const User = require("../models/User");
 const bcryptjs = require("bcryptjs");
+const jwt = require('jsonwebtoken');
+const { APP_SECRET } = require("../config");
 
 const courses = [
   {
@@ -10,10 +12,20 @@ const courses = [
   }
 ]
 
+const generateToken = (payload, secret, expiresIn) => {
+  console.log({ payload });
+  const token = jwt.sign(payload, secret, { expiresIn });
+  return token;
+}
+
 const resolvers = {
   Query: {
     getAllCourse: () => {
       return courses;
+    },
+    getUser: (_, { token }) => {
+      const user = jwt.verify(token, APP_SECRET);
+      return user;
     }
   },
   Mutation: {
@@ -34,6 +46,24 @@ const resolvers = {
         console.log(error)
       }
       return "Creando usuario";
+    },
+    signIn: async (_, { signInDto }) => {
+      const { email, password } = signInDto;
+      const user = await User.findOne({ email });
+      if (!user) {
+        throw new Error('User not exists')
+      }
+      const isCorrectPassword = await bcryptjs.compare(password, user.password);
+
+      if (!isCorrectPassword) {
+        throw new Error('Invalid password')
+      }
+
+      const token = generateToken({ id: user._id }, APP_SECRET, '24H');
+
+      return {
+        token
+      }
     }
   }
 }
