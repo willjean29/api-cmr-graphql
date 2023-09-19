@@ -56,6 +56,41 @@ const resolvers = {
         throw new Error("Unauthorized");
       }
       return customer;
+    },
+    getOrders: async (_, { }, ctx) => {
+      try {
+        const orders = await Order.find({});
+        return orders;
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    getOrdersBySeller: async (_, { id }, ctx) => {
+      try {
+        const orders = await Order.find({ seller: ctx.user.id });
+        return orders;
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    getOrdersById: async (_, { id }, ctx) => {
+      const order = await Order.findById(id);
+      if (!order) {
+        throw new Error("Order not found")
+      }
+      if (order.seller.toString() !== ctx.user.id) {
+        throw new Error("Unauthorized");
+      }
+
+      return order;
+    },
+    getOrdersByStatus: async (_, { status }, ctx) => {
+      try {
+        const orders = await Order.find({ seller: ctx.user.id, status });
+        return orders;
+      } catch (error) {
+        console.log(error)
+      }
     }
   },
   Mutation: {
@@ -185,12 +220,58 @@ const resolvers = {
           product.stock = product.stock - item.qty;
           await product.save();
         }
-
-        const newOrder = new Order(orderDto);
-        newOrder.seller = ctx.user.id;
-        await newOrder.save();
-        return newOrder;
       }
+
+      const newOrder = new Order(orderDto);
+      newOrder.seller = ctx.user.id;
+      await newOrder.save();
+      return newOrder;
+    },
+    updateOrder: async (_, { id, orderDto }, ctx) => {
+      console.log({ id, orderDto });
+      const { customer: customerId } = orderDto;
+      let order = await Order.findById(id);
+      if (!order) {
+        throw new Error("Order not found");
+      }
+
+      const customer = await Customer.findById(customerId);
+      if (!customer) {
+        throw new Error("Customer not found");
+      }
+
+      if (customer.seller.toString() !== ctx.user.id) {
+        throw new Error("Unauthorized")
+      }
+
+      if (orderDto.order) {
+        for await (const item of order) {
+          const { id } = item;
+          const product = await Product.findById(id);
+          if (item.qty > product.stock) {
+            throw new Error("The product exceeds the quantity in stock.")
+          } else {
+            product.stock = product.stock - item.qty;
+            await product.save();
+          }
+        }
+      }
+
+      order = await Order.findByIdAndUpdate({ _id: id }, orderDto, { new: true });
+
+      return order;
+    },
+    deleteOrder: async (_, { id }, ctx) => {
+      const order = await Order.findById(id);
+      if (!order) {
+        throw new Error("Order not found");
+      }
+      if (order.seller.toString() !== ctx.user.id) {
+        throw new Error("Unauthorized")
+      }
+      await Order.findByIdAndDelete(id);
+
+      return order;
     }
   }
 }
