@@ -5,6 +5,7 @@ const { APP_SECRET } = require("../config");
 const Product = require("../models/Product");
 const Customer = require("../models/Customer");
 const Order = require("../models/Order");
+const { StatusOrder, CollectionNames } = require("../utils");
 const generateToken = (payload, secret, expiresIn) => {
   const token = jwt.sign(payload, secret, { expiresIn });
   return token;
@@ -91,6 +92,58 @@ const resolvers = {
       } catch (error) {
         console.log(error)
       }
+    },
+    getTopCustomers: async () => {
+      const customers = await Order.aggregate([
+        { $match: { status: StatusOrder.Completed } },
+        {
+          $group: {
+            _id: '$customer',
+            total: { $sum: '$total' }
+          }
+        },
+        {
+          $lookup: {
+            from: CollectionNames.Customers,
+            localField: '_id',
+            foreignField: '_id',
+            as: 'customer'
+          }
+        },
+        {
+          $sort: { total: -1 }
+        }
+      ])
+
+      return customers;
+    },
+    getTopSellers: async () => {
+      const sellers = await Order.aggregate([
+        { $match: { status: StatusOrder.Completed } },
+        {
+          $group: {
+            _id: '$seller',
+            total: { $sum: '$total' }
+          }
+        },
+        {
+          $lookup: {
+            from: CollectionNames.Users,
+            localField: '_id',
+            foreignField: '_id',
+            as: 'seller'
+          }
+        },
+        {
+          $sort: { total: -1 }
+        }
+      ])
+
+      return sellers;
+    },
+    getProductByName: async (_, { name }, ctx) => {
+      const products = await Product.find({ $text: { $search: name } }).limit(10);
+      return products;
     }
   },
   Mutation: {

@@ -95,6 +95,16 @@ const typeDefs = gql`
     status: StatusOrder
   }
 
+  type TopCustomer {
+    total: Float
+    customer: [Customer]
+  }
+
+  type TopSeller {
+    total: Float
+    seller: [User]
+  }
+
   type Query {
     # users
     getUser(token: String!): User
@@ -113,6 +123,11 @@ const typeDefs = gql`
     getOrdersBySeller: [Order]
     getOrdersById(id: ID!): Order
     getOrdersByStatus(status: StatusOrder!): [Order]
+
+    # advances queries
+    getTopCustomers: [TopCustomer]
+    getTopSellers: [TopSeller]
+    getProductByName(name: String!): [Product] 
   }
 
   type Mutation {
