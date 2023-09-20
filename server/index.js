@@ -1,6 +1,8 @@
 const { ApolloServer } = require("apollo-server")
-const typeDefs = require("./db/schema")
-const resolvers = require("./db/resolvers")
+// const typeDefs = require("./db/schema")
+// const resolvers = require("./db/resolvers")
+const typeDefs = require("./schema")
+const resolvers = require("./resolvers")
 const databaseConnection = require('./config/db')
 const jwt = require('jsonwebtoken');
 const { APP_SECRET } = require("./config");
