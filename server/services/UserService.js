@@ -1,15 +1,18 @@
 const { UserRepository } = require("../db/repositories");
-const bcryptjs = require("bcryptjs");
-const jwt = require('jsonwebtoken');
+const { BcryptHashProvider } = require("../providers/HashProvider");
+const { JwtSecretProvider } = require("../providers/SecretProvider");
 const { APP_SECRET } = require("../config");
 
+const hashProvider = BcryptHashProvider;
+const secretProvider = JwtSecretProvider;
+
 function generateToken(payload, secret, expiresIn) {
-  const token = jwt.sign(payload, secret, { expiresIn });
+  const token = secretProvider.sign(payload, secret, { expiresIn });
   return token;
 }
 
 async function getUser(token) {
-  const user = jwt.verify(token, APP_SECRET);
+  const user = secretProvider.verify(token, APP_SECRET);
   return user;
 }
 
@@ -19,9 +22,9 @@ async function createUser(userDto) {
   if (isExist) {
     throw new Error(`User ${email} already exists`)
   }
-  // todo: refactor to solid principle
-  const salt = await bcryptjs.genSalt(10);
-  userDto.password = await bcryptjs.hash(password, salt);
+
+  userDto.password = await hashProvider.generate(password);
+
   try {
     const user = await UserRepository.create(userDto);
     console.log({ user })
@@ -37,7 +40,7 @@ async function signIn(signInDto) {
   if (!user) {
     throw new Error('User not exists')
   }
-  const isCorrectPassword = await bcryptjs.compare(password, user.password);
+  const isCorrectPassword = await hashProvider.compare(password, user.password);
 
   if (!isCorrectPassword) {
     throw new Error('Invalid password')

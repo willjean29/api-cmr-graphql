@@ -1,23 +1,22 @@
 const { ApolloServer } = require("apollo-server")
-// const typeDefs = require("./db/schema")
-// const resolvers = require("./db/resolvers")
 const typeDefs = require("./schema")
 const resolvers = require("./resolvers")
 const databaseConnection = require('./config/db')
-const jwt = require('jsonwebtoken');
 const { APP_SECRET } = require("./config");
+const { JwtSecretProvider } = require("./providers/SecretProvider");
+
 databaseConnection();
+
+const secretProvider = JwtSecretProvider;
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: ({ req }) => {
-    // console.log({ headers: req.headers });
     const token = req.headers['authorization'];
     if (token) {
       try {
-        const user = jwt.verify(token, APP_SECRET);
-        // console.log({ user })
+        const user = secretProvider.verify(token, APP_SECRET);
         return { user }
       } catch (error) {
         console.log("hubo un error")
