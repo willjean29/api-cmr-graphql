@@ -1,54 +1,26 @@
 const { ProductRepository } = require("../db/repositories");
+const { ProductService } = require("../services");
 const productResolvers = {
   Query: {
-    getProducts: async () => {
-      try {
-        const products = await ProductRepository.find({});
-        return products;
-      } catch (error) {
-        console.log(error);
-      }
+    getProducts: () => {
+      return ProductService.getProducts();
     },
-    getProductsById: async (_, { id }) => {
-      const product = await ProductRepository.findById(id);
-      if (!product) {
-        throw new Error("Product not found");
-      }
-      return product;
+    getProductsById: (_, { id }) => {
+      return ProductService.getProductsById(id);
     },
-    getProductByName: async (_, { name }, ctx) => {
-      const products = await ProductRepository.find({ $text: { $search: name } }).limit(10);
-      return products;
+    getProductByName: (_, { name }) => {
+      return ProductService.getProductByName(name);
     }
   },
   Mutation: {
-    createProduct: async (_, { productDto }) => {
-      try {
-        const product = await ProductRepository.create(productDto);
-        await product.save();
-        return product;
-      } catch (error) {
-        console.log({ error });
-      }
+    createProduct: (_, { productDto }) => {
+      return ProductService.createProduct(productDto);
     },
-    updateProduct: async (_, { id, productDto }) => {
-      let product = await ProductRepository.findById(id);
-      if (!product) {
-        throw new Error("Product not found");
-      }
-
-      product = await ProductRepository.findByIdAndUpdate(id, productDto);
-
-      return product;
+    updateProduct: (_, { id, productDto }) => {
+      return ProductService.updateProduct(id, productDto);
     },
-    deleteProduct: async (_, { id }) => {
-      let product = await ProductRepository.findById(id);
-      if (!product) {
-        throw new Error("Product not found");
-      }
-
-      await ProductRepository.findByIdAndDelete(id);
-      return product;
+    deleteProduct: (_, { id }) => {
+      return ProductService.deleteProduct(id);
     }
   }
 }

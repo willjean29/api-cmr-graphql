@@ -16,9 +16,13 @@ async function findById(id) {
   return product;
 }
 
-async function find(queries = {}) {
-  const products = await Product.find(queries);
-  return products;
+async function find(queries = {}, options = {}) {
+  let products = Product.find(queries);
+  if (options?.limit) {
+    products = products.limit(options.limit);
+  }
+
+  return products.exec();
 }
 
 async function findByIdAndUpdate(id, productDto) {
