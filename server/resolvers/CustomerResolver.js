@@ -1,10 +1,10 @@
-const Customer = require("../models/Customer");
+const { CustomerRepository } = require("../db/repositories");
 
 const cutomerResolvers = {
   Query: {
     getCustomers: async () => {
       try {
-        const customers = await Customer.find({});
+        const customers = await CustomerRepository.find({});
         return customers;
       } catch (error) {
         console.log({ error });
@@ -12,14 +12,14 @@ const cutomerResolvers = {
     },
     getCustomersBySeller: async (_, { }, ctx) => {
       try {
-        const customers = await Customer.find({ seller: ctx.user.id.toString() });
+        const customers = await CustomerRepository.find({ seller: ctx.user.id.toString() });
         return customers;
       } catch (error) {
         console.log(error)
       }
     },
     getCustomersById: async (_, { id }, ctx) => {
-      const customer = await Customer.findById(id);
+      const customer = await CustomerRepository.findById(id);
       if (!customer) {
         throw new Error("Customer not found");
       }
@@ -32,21 +32,19 @@ const cutomerResolvers = {
   Mutation: {
     createCustomer: async (_, { customerDto }, ctx) => {
       const { email } = customerDto;
-      const customer = await Customer.findOne({ email });
+      const customer = await CustomerRepository.findOne('email', email);
       if (customer) {
         throw new Error("Customer already exists");
       }
-      const newCustomer = new Customer(customerDto);
-      newCustomer.seller = ctx.user.id;
       try {
-        await newCustomer.save();
+        const newCustomer = await CustomerRepository.create({ ...customerDto, seller: ctx.user.id });
         return newCustomer;
       } catch (error) {
         console.log({ error });
       }
     },
     updateCustomer: async (_, { id, customerDto }, ctx) => {
-      let customer = await Customer.findById(id);
+      let customer = await CustomerRepository.findById(id);
       if (!customer) {
         throw new Error("Customer not found")
       }
@@ -55,12 +53,12 @@ const cutomerResolvers = {
         throw new Error("Unauthorized")
       }
 
-      customer = Customer.findByIdAndUpdate({ _id: id }, customerDto, { new: true });
+      customer = CustomerRepository.findByIdAndUpdate(id, customerDto);
 
       return customer;
     },
     deleteCustomer: async (_, { id }, ctx) => {
-      let customer = await Customer.findById(id);
+      let customer = await CustomerRepository.findById(id);
       if (!customer) {
         throw new Error("Customer not found")
       }
@@ -69,7 +67,7 @@ const cutomerResolvers = {
         throw new Error("Unauthorized")
       }
 
-      await Customer.findByIdAndDelete(id);
+      await CustomerRepository.findByIdAndDelete(id);
 
       return customer;
     },
