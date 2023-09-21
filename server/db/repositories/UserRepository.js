@@ -6,8 +6,8 @@ async function create(userDto) {
   return user;
 }
 
-async function findOne(param) {
-  const user = await User.findOne({ param });
+async function findOne(param, value) {
+  const user = await User.findOne({ [param]: value });
   return user;
 }
 
