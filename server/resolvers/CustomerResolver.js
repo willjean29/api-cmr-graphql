@@ -1,75 +1,26 @@
-const { CustomerRepository } = require("../db/repositories");
+const { CustomerService } = require("../services");
 
 const cutomerResolvers = {
   Query: {
-    getCustomers: async () => {
-      try {
-        const customers = await CustomerRepository.find({});
-        return customers;
-      } catch (error) {
-        console.log({ error });
-      }
+    getCustomers: () => {
+      return CustomerService.getCustomers();
     },
-    getCustomersBySeller: async (_, { }, ctx) => {
-      try {
-        const customers = await CustomerRepository.find({ seller: ctx.user.id.toString() });
-        return customers;
-      } catch (error) {
-        console.log(error)
-      }
+    getCustomersBySeller: (_, { }, ctx) => {
+      return CustomerService.getCustomersBySeller(ctx);
     },
-    getCustomersById: async (_, { id }, ctx) => {
-      const customer = await CustomerRepository.findById(id);
-      if (!customer) {
-        throw new Error("Customer not found");
-      }
-      if (customer.seller.toString() !== ctx.user.id) {
-        throw new Error("Unauthorized");
-      }
-      return customer;
+    getCustomersById: (_, { id }, ctx) => {
+      return CustomerService.getCustomersById(id, ctx);
     }
   },
   Mutation: {
-    createCustomer: async (_, { customerDto }, ctx) => {
-      const { email } = customerDto;
-      const customer = await CustomerRepository.findOne('email', email);
-      if (customer) {
-        throw new Error("Customer already exists");
-      }
-      try {
-        const newCustomer = await CustomerRepository.create({ ...customerDto, seller: ctx.user.id });
-        return newCustomer;
-      } catch (error) {
-        console.log({ error });
-      }
+    createCustomer: (_, { customerDto }, ctx) => {
+      return CustomerService.createCustomer(customerDto, ctx)
     },
-    updateCustomer: async (_, { id, customerDto }, ctx) => {
-      let customer = await CustomerRepository.findById(id);
-      if (!customer) {
-        throw new Error("Customer not found")
-      }
-
-      if (customer.seller.toString() !== ctx.user.id) {
-        throw new Error("Unauthorized")
-      }
-
-      customer = CustomerRepository.findByIdAndUpdate(id, customerDto);
-
-      return customer;
+    updateCustomer: (_, { id, customerDto }, ctx) => {
+      return CustomerService.updateCustomer(id, customerDto, ctx)
     },
-    deleteCustomer: async (_, { id }, ctx) => {
-      let customer = await CustomerRepository.findById(id);
-      if (!customer) {
-        throw new Error("Customer not found")
-      }
-
-      if (customer.seller.toString() !== ctx.user.id) {
-        throw new Error("Unauthorized")
-      }
-
-      await CustomerRepository.findByIdAndDelete(id);
-
-      return customer;
+    deleteCustomer: (_, { id }, ctx) => {
+      return CustomerService.deleteCustomer(id, ctx)
     },
   }
 }
