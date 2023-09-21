@@ -1,127 +1,35 @@
 
-const Product = require("../models/Product");
-const Customer = require("../models/Customer");
-const Order = require("../models/Order");
-const { StatusOrder, CollectionNames } = require("../utils");
-const { OrderRepository, CustomerRepository, ProductRepository } = require("../db/repositories");
+const { OrderService } = require("../services");
 const orderResolvers = {
   Query: {
-    getOrders: async (_, { }) => {
-      try {
-        const orders = await OrderRepository.find({});
-        return orders;
-      } catch (error) {
-        console.log(error)
-      }
+    getOrders: (_, { }) => {
+      return OrderService.getOrders();
     },
-    getOrdersBySeller: async (_, { }, ctx) => {
-      try {
-        const orders = await OrderRepository.find({ seller: ctx.user.id });
-        return orders;
-      } catch (error) {
-        console.log(error)
-      }
+    getOrdersBySeller: (_, { }, ctx) => {
+      return OrderService.getOrdersBySeller(ctx);
     },
-    getOrdersById: async (_, { id }, ctx) => {
-      const order = await OrderRepository.findById(id);
-      if (!order) {
-        throw new Error("Order not found")
-      }
-      if (order.seller.toString() !== ctx.user.id) {
-        throw new Error("Unauthorized");
-      }
-
-      return order;
+    getOrdersById: (_, { id }, ctx) => {
+      return OrderService.getOrdersById(id, ctx);
     },
-    getOrdersByStatus: async (_, { status }, ctx) => {
-      try {
-        const orders = await OrderRepository.find({ seller: ctx.user.id, status });
-        return orders;
-      } catch (error) {
-        console.log(error)
-      }
+    getOrdersByStatus: (_, { status }, ctx) => {
+      return OrderService.getOrdersByStatus(status, ctx);
     },
-    getTopCustomers: async () => {
-      const customers = await OrderRepository.findTopCustomer();
-      return customers;
+    getTopCustomers: () => {
+      return OrderService.getTopCustomers();
     },
-    getTopSellers: async () => {
-      const sellers = await OrderRepository.findTopSeller();
-      return sellers;
+    getTopSellers: () => {
+      return OrderService.getTopSellers();
     },
   },
   Mutation: {
-    createOrder: async (_, { orderDto }, ctx) => {
-      const { customer: id, order } = orderDto;
-      let customer = await CustomerRepository.findById(id);
-      if (!customer) {
-        throw new Error("Customer not found")
-      }
-      if (customer.seller.toString() !== ctx.user.id) {
-        throw new Error("Unauthorized")
-      }
-
-      for await (const item of order) {
-        const { id } = item;
-        const product = await ProductRepository.findById(id);
-        if (item.qty > product.stock) {
-          throw new Error("The product exceeds the quantity in stock.")
-        } else {
-          product.stock = product.stock - item.qty;
-          await ProductRepository.findByIdAndUpdate(id, product);
-        }
-      }
-
-      const newOrder = await OrderRepository.create({
-        ...orderDto,
-        seller: ctx.user.id
-      });
-      return newOrder;
+    createOrder: (_, { orderDto }, ctx) => {
+      return OrderService.createOrder(orderDto, ctx);
     },
-    updateOrder: async (_, { id, orderDto }, ctx) => {
-      const { customer: customerId } = orderDto;
-      let order = await OrderRepository.findById(id);
-      if (!order) {
-        throw new Error("Order not found");
-      }
-
-      const customer = await CustomerRepository.findById(customerId);
-      if (!customer) {
-        throw new Error("Customer not found");
-      }
-
-      if (customer.seller.toString() !== ctx.user.id) {
-        throw new Error("Unauthorized")
-      }
-
-      if (orderDto.order) {
-        for await (const item of order) {
-          const { id } = item;
-          const product = await ProductRepository.findById(id);
-          if (item.qty > product.stock) {
-            throw new Error("The product exceeds the quantity in stock.")
-          } else {
-            product.stock = product.stock - item.qty;
-            await ProductRepository.findByIdAndUpdate(id, product);
-          }
-        }
-      }
-
-      order = await OrderRepository.findByIdAndUpdate(id, orderDto);
-
-      return order;
+    updateOrder: (_, { id, orderDto }, ctx) => {
+      return OrderService.updateOrder(id, orderDto, ctx);
     },
-    deleteOrder: async (_, { id }, ctx) => {
-      const order = await OrderRepository.findById(id);
-      if (!order) {
-        throw new Error("Order not found");
-      }
-      if (order.seller.toString() !== ctx.user.id) {
-        throw new Error("Unauthorized")
-      }
-      await OrderRepository.findByIdAndDelete(id);
-
-      return order;
+    deleteOrder: (_, { id }, ctx) => {
+      return OrderService.deleteOrder(id, ctx);
     }
   }
 }
