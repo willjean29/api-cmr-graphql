@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const { DB_URL } = require("./");
+const { DB_URL } = require("../config");
 
-module.exports = async () => {
+const mongoDatabaseConnection = () => {
   try {
     mongoose.connect(DB_URL);
     console.log("db connection established")
@@ -11,3 +11,5 @@ module.exports = async () => {
     process.exit(1);
   }
 }
+
+module.exports = mongoDatabaseConnection;
