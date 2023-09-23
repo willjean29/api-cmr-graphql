@@ -62,8 +62,7 @@ async function findTopSeller() {
 }
 
 async function create(orderDto) {
-  const order = new Order(orderDto);
-  await order.save();
+  const order = await Order.create(orderDto);
   return order;
 }
 

@@ -16,8 +16,7 @@ async function findOne(param, value) {
 }
 
 async function create(customerDto) {
-  const customer = new Customer(customerDto);
-  await customer.save();
+  const customer = await Customer.create(customerDto);
   return customer;
 }
 

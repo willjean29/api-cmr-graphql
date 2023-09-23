@@ -1,8 +1,7 @@
 const { Product } = require("../../models");
 
-async function create(userDto) {
-  const product = new Product(userDto);
-  await product.save();
+async function create(productDto) {
+  const product = await Product.create(productDto);
   return product;
 }
 
