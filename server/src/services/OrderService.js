@@ -83,7 +83,7 @@ async function updateOrder(id, orderDto, ctx) {
   await CustomerService.getCustomersById(customerId, ctx);
 
   if (orderDto.order) {
-    for await (const item of order) {
+    for await (const item of orderDto.order) {
       const { id } = item;
       const product = await ProductService.getProductsById(id);
       if (item.qty > product.stock) {
