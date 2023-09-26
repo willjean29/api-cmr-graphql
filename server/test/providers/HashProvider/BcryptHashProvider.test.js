@@ -1,6 +1,6 @@
 const bcryptjs = require("bcryptjs");
 const { BcryptHashProvider } = require("../../../src/providers/HashProvider")
-describe('BcryptHashProvider', () => {
+describe('BcryptHashProvider test suite', () => {
   let genSaltSpy;
   let hashSpy;
   let compareSpy;

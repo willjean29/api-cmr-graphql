@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken")
 const { JwtSecretProvider } = require("../../../src/providers/SecretProvider")
 
-describe('JwtSecretProvider', () => {
+describe('JwtSecretProvider test suite', () => {
   let signSpy;
   let verifySpy;
 
